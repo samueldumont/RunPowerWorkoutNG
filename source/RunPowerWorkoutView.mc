@@ -107,6 +107,8 @@ class RunPowerWorkoutView extends WatchUi.DataField {
       [ 360, 180, 127, 202, 277, 115, 266, 165, 174, 156, 50, 75, 52, 191 ];
   (:roundsix) const geometry =
       [ 416, 208, 147, 234, 320, 133, 308, 193, 202, 187, 55, 87, 60, 221 ];
+  (:roundseven) const geometry =
+      [ 208, 104, 73, 114, 158, 66, 152, 98, 109, 81, 25, 43, 27, 111 ];
 
   function initialize(strydsensor) {
     // read settings
@@ -278,11 +280,16 @@ class RunPowerWorkoutView extends WatchUi.DataField {
     }
   }
 
-  (:lowmemlow) function set_fonts() { fonts = [ 0, 1, 2, 3, 6, 8 ]; }
+  (:lowmemreg) function set_fonts() { fonts = [ 0, 1, 2, 3, 6, 8 ]; }
 
   (:lowmemlarge) function set_fonts() {
     fontOffset = 2;
     fonts = [ 0, 1, 2, 3, 6, 8 ];
+  }
+
+  (:lowmemlow) function set_fonts() {
+    fontOffset = -1;
+    fonts = [ 0, 1, 2, 3, 5, 7 ];
   }
 
   (:highmem) function set_layout() {
@@ -315,11 +322,19 @@ class RunPowerWorkoutView extends WatchUi.DataField {
     lapStartDistance = 0;
   }
 
-  (:lowmem) function set_layout() {
+  (:lowmemreg) function set_layout() {
     fields = Utils.replaceNull(Application.getApp().getProperty("N"), "368201").toCharArray();
   }
 
-  function onLayout(dc) { return true; }
+  (:lowmemlow) function set_layout() {
+    fields = Utils.replaceNull(Application.getApp().getProperty("N"), "368201").toCharArray();
+  }
+
+  (:lowmemlarge) function set_layout() {
+    fields = Utils.replaceNull(Application.getApp().getProperty("N"), "368201").toCharArray();
+  }
+
+  function onLayout(dc) { }
 
   (:noworkout)
   function compute(info) {
@@ -548,13 +563,12 @@ class RunPowerWorkoutView extends WatchUi.DataField {
               }
             }
           } else {
-            if(!keepLast){
+            if(!keepLast || nextTargetHigh == null || nextTargetLow == null){
               nextTargetHigh = 0;
               nextTargetLow = 0;
             }
             nextTargetType = 5;
             nextTargetDuration = 0;
-
           }
 
           targetHigh = workout.step.targetValueHigh - 1000;
@@ -582,7 +596,7 @@ class RunPowerWorkoutView extends WatchUi.DataField {
                      workout.step.durationType == 1) {
 
             stepType = (targetHigh > 0 && targetLow > 0) ? 1 : 98;
-            if (workout.step.durationValue != null && remainingDistance >= 0) {
+            if (workout.step.durationValue != null && elapsedDistance != null && remainingDistance >= 0) {
               remainingDistance = workout.step.durationValue -
                                   (elapsedDistance.toNumber() -
                                    stepStartDistance);
@@ -603,7 +617,7 @@ class RunPowerWorkoutView extends WatchUi.DataField {
             }
           }
         } else {
-          if(keepLast){
+          if(keepLast && nextTargetLow != null && nextTargetHigh != null){
             stepType = 5;
             targetHigh = nextTargetHigh;
             targetLow = nextTargetLow;
@@ -659,7 +673,7 @@ class RunPowerWorkoutView extends WatchUi.DataField {
 
            if (avgPower == 0) {
               avgPower = currentPower;
-            } else if (lapTime != 0) {
+            } else if (timer != 0) {
               avgPower = (((avgPower * (timer - 1)) + currentPower) / (timer * 1.0));
             }
 
